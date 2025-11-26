@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VendasService.Data;
 using VendasService.Models;
+using VendasService.Services;
 
 namespace VendasService.Controllers
 {
@@ -22,7 +23,6 @@ namespace VendasService.Controllers
             // Validação do estoque (simulação)
             foreach (var item in pedido.Itens)
             {
-                // Simular validação do estoque
                 if (item.Quantidade <= 0)
                 {
                     return BadRequest($"Quantidade inválida para o produto {item.ProdutoId}");
@@ -34,6 +34,13 @@ namespace VendasService.Controllers
 
             _context.Pedidos.Add(pedido);
             _context.SaveChanges();
+
+            // Enviar mensagem para RabbitMQ
+            using (var producer = new RabbitMQProducer())
+            {
+                var message = $"Pedido criado: {pedido.Id}, Cliente: {pedido.Cliente}, Itens: {pedido.Itens.Count}";
+                producer.SendMessage(message);
+            }
 
             return CreatedAtAction(nameof(ConsultarPedido), new { id = pedido.Id }, pedido);
         }
