@@ -26,7 +26,7 @@ namespace APIGateway.Controllers
         [HttpGet("estoque/{*path}")]
         public async Task<IActionResult> RoteamentoEstoque(string path)
         {
-            var response = await _httpClient.GetAsync($"http://localhost:5001/{path}");
+            var response = await _httpClient.GetAsync($"http://localhost:5002/{path}");
             return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
         }
     }

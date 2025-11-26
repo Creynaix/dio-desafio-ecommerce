@@ -4,16 +4,13 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Configurar Swagger
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configurar o banco de dados
 builder.Services.AddDbContext<VendasContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Adicionar suporte para controllers
-builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -24,9 +21,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// app.UseHttpsRedirection();
-
-// Mapear os controllers
+app.UseAuthorization();
 app.MapControllers();
-
 app.Run();

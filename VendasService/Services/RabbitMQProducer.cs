@@ -1,9 +1,10 @@
 using RabbitMQ.Client;
 using System.Text;
+using System;
 
 namespace VendasService.Services
 {
-    public class RabbitMQProducer
+    public class RabbitMQProducer : IDisposable
     {
         private readonly IConnection _connection;
         private readonly IModel _channel;
