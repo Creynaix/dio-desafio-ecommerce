@@ -1,12 +1,12 @@
 using EstoqueService.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar autenticação JWT
+// Autenticação JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -18,27 +18,36 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            )
         };
     });
 
-// Configurar políticas de autorização
+// Políticas
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Administrador", policy => policy.RequireClaim("role", "Administrador"));
     options.AddPolicy("Cliente", policy => policy.RequireClaim("role", "Cliente"));
 });
 
-// Configurar o banco de dados
+// Banco
 builder.Services.AddDbContext<EstoqueContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Controllers
 builder.Services.AddControllers();
+
+// Swagger antigo (UI)
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
+
+    // Swagger UI
     app.UseSwagger();
     app.UseSwaggerUI();
 }
