@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EstoqueService.Data;
 using EstoqueService.Models;
@@ -17,6 +18,7 @@ namespace EstoqueService.Controllers
 
         // POST: api/produtos
         [HttpPost]
+        [Authorize(Policy = "Administrador")]
         public IActionResult CadastrarProduto([FromBody] Produto produto)
         {
             _context.Produtos.Add(produto);
@@ -24,8 +26,25 @@ namespace EstoqueService.Controllers
             return CreatedAtAction(nameof(ConsultarProduto), new { id = produto.Id }, produto);
         }
 
+        // PUT: api/produtos/{id}
+        [HttpPut("{id}")]
+        [Authorize(Policy = "Administrador")]
+        public IActionResult AtualizarEstoque(int id, [FromBody] Produto produtoAtualizado)
+        {
+            var produto = _context.Produtos.Find(id);
+            if (produto == null)
+            {
+                return NotFound();
+            }
+
+            produto.Quantidade = produtoAtualizado.Quantidade;
+            _context.SaveChanges();
+            return NoContent();
+        }
+
         // GET: api/produtos
         [HttpGet]
+        [Authorize(Policy = "Cliente")]
         public IActionResult ConsultarProdutos()
         {
             var produtos = _context.Produtos.ToList();
@@ -43,22 +62,6 @@ namespace EstoqueService.Controllers
             }
 
             return Ok(produto);
-        }
-
-        // PUT: api/produtos/{id}
-        [HttpPut("{id}")]
-        public IActionResult AtualizarEstoque(int id, [FromBody] Produto produtoAtualizado)
-        {
-            var produto = _context.Produtos.Find(id);
-            if (produto == null)
-            {
-                return NotFound();
-            }
-
-            produto.Quantidade = produtoAtualizado.Quantidade;
-            _context.SaveChanges();
-
-            return NoContent();
         }
     }
 }
