@@ -18,7 +18,7 @@ namespace EstoqueService.Controllers
 
         // POST: api/produtos
         [HttpPost]
-        [Authorize(Policy = "Administrador")]
+        [Authorize (Policy = "Administrador")]
         public IActionResult CadastrarProduto([FromBody] Produto produto)
         {
             _context.Produtos.Add(produto);

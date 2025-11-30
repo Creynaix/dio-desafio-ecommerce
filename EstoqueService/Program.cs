@@ -27,8 +27,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Políticas
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Administrador", policy => policy.RequireClaim("role", "Administrador"));
-    options.AddPolicy("Cliente", policy => policy.RequireClaim("role", "Cliente"));
+    options.AddPolicy("Administrador", policy =>
+    {
+        policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Administrador");
+    });
+    options.AddPolicy("Cliente", policy =>
+    {
+        policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Cliente", "Administrador");
+    });
 });
 
 // Banco
