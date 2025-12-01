@@ -13,7 +13,7 @@ namespace EstoqueService.Data
         {
             modelBuilder.Entity<Produto>()
                 .Property(p => p.Preco)
-                .HasColumnType("decimal(18,2)"); // Configura o tipo de coluna para Preco
+                .HasPrecision(18, 2); // Configura o tipo de coluna para Preco
         }
     }
 }

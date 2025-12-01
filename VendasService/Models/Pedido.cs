@@ -7,8 +7,8 @@ namespace VendasService.Models
     {
         public int Id { get; set; }
         public required string Cliente { get; set; }
-        public DateTime Data { get; set; }
-        public required string Status { get; set; }
-        public required List<ItemPedido> Itens { get; set; } = new();
+        public DateTime Data { get; set; } = DateTime.Now;
+        public string Status { get; set; } = "Pendente";
+        public List<ItemPedido> Itens { get; set; } = new();
     }
 }

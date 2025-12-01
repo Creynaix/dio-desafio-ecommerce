@@ -1,0 +1,120 @@
+﻿version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: ecommerce-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/1433' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ecommerce-rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  estoque-service:
+    build:
+      context: .
+      dockerfile: EstoqueService/Dockerfile
+    container_name: ecommerce-estoque
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=EstoqueDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+    ports:
+      - "5000:5000"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+    restart: on-failure
+
+  vendas-service:
+    build:
+      context: .
+      dockerfile: VendasService/Dockerfile
+    container_name: ecommerce-vendas
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5002
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=VendasDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - EstoqueServiceUrl=http://estoque-service:5000
+    ports:
+      - "5002:5002"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      estoque-service:
+        condition: service_started
+    networks:
+      - ecommerce-network
+    restart: on-failure
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: APIGateway/Dockerfile
+    container_name: ecommerce-gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5004
+      - Services__EstoqueService=http://estoque-service:5000
+      - Services__VendasService=http://vendas-service:5002
+    ports:
+      - "5004:5004"
+    depends_on:
+      - estoque-service
+      - vendas-service
+    networks:
+      - ecommerce-network
+    restart: on-failure
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+  rabbitmq-data:

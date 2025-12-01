@@ -1,0 +1,144 @@
+﻿╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║  E-COMMERCE MICROSERVICES - DESAFIO DIO                       ║
+║  Sistema completo com .NET + Docker + RabbitMQ                ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📋 INÍCIO RÁPIDO (2 minutos):
+
+1️⃣  PRÉ-REQUISITO:
+   ▸ Docker Desktop instalado e RODANDO
+   ▸ Download: https://docs.docker.com/desktop/install/windows-install/
+
+2️⃣  EXECUTAR:
+   ▸ Duplo-clique em: START-DOCKER.bat
+   ▸ Aguarde 2-3 minutos
+   ▸ Pronto! Sistema rodando!
+
+3️⃣  ACESSAR:
+   ▸ Swagger: http://localhost:5004/swagger
+   ▸ Interface: http://localhost:5004/estoque.html
+   ▸ RabbitMQ: http://localhost:15672 (guest/guest)
+
+-----------------------------------------------------------
+
+🔐 CREDENCIAIS:
+
+Admin:    admin / admin123
+Cliente:  cliente / cliente123
+
+-----------------------------------------------------------
+
+🎬 DEMONSTRAÇÕES:
+
+• DEMO-RABBITMQ.bat
+  Script automatizado mostrando RabbitMQ em ação
+  (5 pedidos + dashboard + logs)
+
+• Gif_DIO.gif
+  Interface web funcionando
+
+• Gif_DIO_script.gif
+  RabbitMQ processando mensagens
+
+-----------------------------------------------------------
+
+📚 DOCUMENTAÇÃO COMPLETA:
+
+• README.md
+  Guia completo com arquitetura, testes, deploy
+
+• DOCUMENTACAO.html
+  Documentação técnica detalhada (3.500+ linhas)
+  Fluxos, diagramas, decisões arquiteturais
+
+-----------------------------------------------------------
+
+🛠️ COMANDOS ÚTEIS:
+
+Ver logs:           docker-compose logs -f
+Status:             docker-compose ps
+Parar:              docker-compose stop
+Limpar tudo:        docker-compose down -v
+
+-----------------------------------------------------------
+
+✅ TECNOLOGIAS:
+
+• .NET 10.0 Preview RC2
+• ASP.NET Core Web API
+• Entity Framework Core
+• SQL Server 2019
+• RabbitMQ 3-management
+• Docker & Docker Compose
+• JWT Authentication
+• xUnit + Moq + FluentAssertions
+
+-----------------------------------------------------------
+
+📊 ARQUITETURA:
+
+┌─────────────────┐
+│   API Gateway   │ :5004 (JWT centralizado)
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    │         │
+┌───▼────┐ ┌─▼──────┐
+│ Estoque│ │ Vendas │
+│  :5000 │ │  :5002 │
+└───┬────┘ └────┬───┘
+    │           │
+    │    ┌──────▼──────┐
+    │    │  RabbitMQ   │ :5672
+    │    │ vendasQueue │
+    │    └─────────────┘
+    │
+┌───▼─────────┐
+│ SQL Server  │ :1433
+│ 2 databases │
+└─────────────┘
+
+-----------------------------------------------------------
+
+🎯 CASOS DE USO:
+
+1. Admin cadastra produtos (POST)
+2. Admin atualiza estoque (PUT)
+3. Cliente cria pedido (POST)
+4. Sistema valida estoque (HTTP síncrono)
+5. Pedido confirmado
+6. RabbitMQ publica mensagem
+7. Consumer atualiza estoque (assíncrono)
+8. Estoque atualizado!
+
+-----------------------------------------------------------
+
+🚨 TROUBLESHOOTING:
+
+❌ Docker não inicia?
+   → Reinicie o Docker Desktop
+   → Aguarde 30 segundos
+   → Execute START-DOCKER.bat novamente
+
+❌ Porta em uso?
+   → docker-compose down
+   → Feche programas usando portas 5000-5004
+   → Execute novamente
+
+❌ Erro ao construir?
+   → docker-compose down -v
+   → docker-compose up --build
+
+-----------------------------------------------------------
+
+📞 SUPORTE:
+
+GitHub: https://github.com/Creynaix/dio-desafio-ecommerce
+Issues: https://github.com/Creynaix/dio-desafio-ecommerce/issues
+
+-----------------------------------------------------------
+
+✨ BOM TESTE! ✨
+

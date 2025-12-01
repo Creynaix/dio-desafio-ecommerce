@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>Gestao de Vendas</title>
+<style>
+body{font-family:Arial;padding:20px;background:#f5f5f5}
+.container{max-width:800px;margin:0 auto;background:white;padding:30px;border-radius:8px}
+button{background:#28a745;color:white;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;margin:5px}
+button:hover{background:#218838}
+input{padding:8px;margin:5px;border:1px solid #ddd;border-radius:4px;width:200px}
+.card{background:#f9f9f9;padding:15px;margin:10px 0;border-radius:4px;border-left:4px solid #28a745}
+.token{background:#d1ecf1;padding:10px;margin:10px 0;border-radius:4px;font-size:12px;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Gestao de Vendas</h1>
+<h2>Login</h2>
+<label>Usuario:</label><br>
+<input id="usuario" placeholder="Usuario">
+<br><label>Senha:</label><br>
+<input id="senha" type="password" placeholder="Senha">
+<br><button onclick="login()">Login</button>
+<button onclick="testeAdmin()" style="background:#28a745">Teste Admin</button>
+<button onclick="testeCliente()" style="background:#17a2b8">Teste Cliente</button>
+<div id="token" class="token" style="display:none"></div>
+<hr>
+<h2>Criar Pedido</h2>
+<label>Nome Cliente:</label><br>
+<input id="cliente" placeholder="Nome Cliente" value="Denise">
+<br><label>ID Produto:</label><br>
+<input id="prodId" type="number" placeholder="ID Produto" value="1">
+<br><label>Quantidade:</label><br>
+<input id="qtd" type="number" placeholder="Quantidade" value="2">
+<br><button onclick="criar()">Criar Pedido</button>
+<div id="result"></div>
+<hr>
+<h2>Pedidos</h2>
+<button onclick="listar()">Atualizar Lista</button>
+<div id="pedidos"></div>
+</div>
+<script>
+let t="";
+function testeAdmin(){
+document.getElementById("usuario").value="admin";
+document.getElementById("senha").value="admin123";
+login();
+}
+function testeCliente(){
+document.getElementById("usuario").value="cliente";
+document.getElementById("senha").value="cliente123";
+login();
+}
+async function login(){
+const usuario=document.getElementById("usuario").value;
+const senha=document.getElementById("senha").value;
+if(!usuario||!senha){alert("Preencha usuario e senha");return}
+try{
+const r=await fetch("http://localhost:5004/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({Username:usuario,Password:senha})});
+const d=await r.json();
+t=d.token||d.Token;
+document.getElementById("token").style.display="block";
+document.getElementById("token").innerText="Token: "+t;
+alert("Login OK");
+}catch(e){alert("Erro: "+e.message)}
+}
+async function criar(){
+if(!t){alert("Faça login primeiro");return}
+try{
+const p={cliente:document.getElementById("cliente").value,itens:[{produtoId:parseInt(document.getElementById("prodId").value),quantidade:parseInt(document.getElementById("qtd").value)}]};
+const r=await fetch("http://localhost:5004/api/gateway/vendas/api/pedidos",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify(p)});
+if(r.ok){document.getElementById("result").innerHTML="<p style='color:green'>Pedido criado! Verifique o estoque.</p>";listar()}
+else{const err=await r.text();document.getElementById("result").innerHTML="<p style='color:red'>"+err+"</p>"}
+}catch(e){document.getElementById("result").innerHTML="<p style='color:red'>"+e.message+"</p>"}
+}
+async function listar(){
+if(!t){alert("Faça login primeiro");return}
+try{
+const r=await fetch("http://localhost:5004/api/gateway/vendas/api/pedidos",{headers:{Authorization:"Bearer "+t}});
+const ps=await r.json();
+document.getElementById("pedidos").innerHTML=ps.map(p=>`<div class="card"><b>Pedido #${p.id}</b><br>Cliente: ${p.cliente}<br>Status: ${p.status}<br>Itens: ${p.itens.length}</div>`).join("")||"<p>Nenhum pedido</p>";
+}catch(e){document.getElementById("pedidos").innerHTML="<p style='color:red'>"+e.message+"</p>"}
+}
+</script>
+</body>
+</html>

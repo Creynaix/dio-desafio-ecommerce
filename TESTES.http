@@ -1,0 +1,290 @@
+### TESTES DA API - E-COMMERCE MICROSERVICES ###
+
+### Variáveis
+@estoqueUrl = http://localhost:5002
+@vendasUrl = http://localhost:5000
+@gatewayUrl = http://localhost:5001
+@tokenAdmin = seu_token_aqui
+@tokenCliente = seu_token_aqui
+
+###############################################
+### 1. AUTENTICAÇÃO
+###############################################
+
+### 1.1 Login Admin (EstoqueService)
+POST {{estoqueUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### 1.2 Login Cliente (VendasService)
+POST {{vendasUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "cliente",
+  "password": "cliente123"
+}
+
+### 1.3 Login Admin (VendasService)
+POST {{vendasUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+###############################################
+### 2. ESTOQUE SERVICE (PRODUTOS)
+###############################################
+
+### 2.1 Cadastrar Produto 1 (requer token Admin)
+POST {{estoqueUrl}}/api/produtos
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "nome": "Notebook Dell Inspiron",
+  "descricao": "Notebook Dell i7 16GB RAM 512GB SSD",
+  "preco": 3500.00,
+  "quantidade": 10
+}
+
+### 2.2 Cadastrar Produto 2
+POST {{estoqueUrl}}/api/produtos
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "nome": "Mouse Logitech MX Master",
+  "descricao": "Mouse sem fio ergonômico",
+  "preco": 350.00,
+  "quantidade": 25
+}
+
+### 2.3 Cadastrar Produto 3
+POST {{estoqueUrl}}/api/produtos
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "nome": "Teclado Mecânico Keychron K2",
+  "descricao": "Teclado mecânico wireless RGB",
+  "preco": 450.00,
+  "quantidade": 15
+}
+
+### 2.4 Listar Todos os Produtos (requer token Cliente ou Admin)
+GET {{estoqueUrl}}/api/produtos
+Authorization: Bearer {{tokenCliente}}
+
+### 2.5 Consultar Produto Específico
+GET {{estoqueUrl}}/api/produtos/1
+Authorization: Bearer {{tokenCliente}}
+
+### 2.6 Atualizar Estoque Manualmente (Admin)
+PUT {{estoqueUrl}}/api/produtos/1
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "quantidade": 20
+}
+
+###############################################
+### 3. VENDAS SERVICE (PEDIDOS)
+###############################################
+
+### 3.1 Criar Pedido Simples (requer token Cliente)
+POST {{vendasUrl}}/api/pedidos
+Content-Type: application/json
+Authorization: Bearer {{tokenCliente}}
+
+{
+  "cliente": "João Silva",
+  "status": "Pendente",
+  "itens": [
+    {
+      "produtoId": 1,
+      "quantidade": 2
+    }
+  ]
+}
+
+### 3.2 Criar Pedido com Múltiplos Itens
+POST {{vendasUrl}}/api/pedidos
+Content-Type: application/json
+Authorization: Bearer {{tokenCliente}}
+
+{
+  "cliente": "Maria Santos",
+  "status": "Pendente",
+  "itens": [
+    {
+      "produtoId": 1,
+      "quantidade": 1
+    },
+    {
+      "produtoId": 2,
+      "quantidade": 3
+    },
+    {
+      "produtoId": 3,
+      "quantidade": 1
+    }
+  ]
+}
+
+### 3.3 Criar Pedido com Estoque Insuficiente (deve falhar)
+POST {{vendasUrl}}/api/pedidos
+Content-Type: application/json
+Authorization: Bearer {{tokenCliente}}
+
+{
+  "cliente": "Pedro Oliveira",
+  "status": "Pendente",
+  "itens": [
+    {
+      "produtoId": 1,
+      "quantidade": 999
+    }
+  ]
+}
+
+### 3.4 Listar Todos os Pedidos
+GET {{vendasUrl}}/api/pedidos
+Authorization: Bearer {{tokenCliente}}
+
+### 3.5 Consultar Pedido Específico
+GET {{vendasUrl}}/api/pedidos/1
+Authorization: Bearer {{tokenCliente}}
+
+###############################################
+### 4. API GATEWAY
+###############################################
+
+### 4.1 Login via Gateway
+POST {{gatewayUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### 4.2 Listar Produtos via Gateway
+GET {{gatewayUrl}}/api/estoque/api/produtos
+Authorization: Bearer {{tokenAdmin}}
+
+### 4.3 Cadastrar Produto via Gateway
+POST {{gatewayUrl}}/api/estoque/api/produtos
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "nome": "Monitor LG 27 4K",
+  "descricao": "Monitor UltraHD IPS",
+  "preco": 1800.00,
+  "quantidade": 8
+}
+
+### 4.4 Criar Pedido via Gateway
+POST {{gatewayUrl}}/api/vendas/api/pedidos
+Content-Type: application/json
+Authorization: Bearer {{tokenCliente}}
+
+{
+  "cliente": "Ana Costa",
+  "status": "Pendente",
+  "itens": [
+    {
+      "produtoId": 2,
+      "quantidade": 1
+    }
+  ]
+}
+
+### 4.5 Listar Pedidos via Gateway
+GET {{gatewayUrl}}/api/vendas/api/pedidos
+Authorization: Bearer {{tokenCliente}}
+
+###############################################
+### 5. TESTES DE ERRO E VALIDAÇÃO
+###############################################
+
+### 5.1 Tentar acessar sem token (deve retornar 401)
+GET {{estoqueUrl}}/api/produtos
+
+### 5.2 Criar pedido sem itens (deve falhar)
+POST {{vendasUrl}}/api/pedidos
+Content-Type: application/json
+Authorization: Bearer {{tokenCliente}}
+
+{
+  "cliente": "Teste Erro",
+  "status": "Pendente",
+  "itens": []
+}
+
+### 5.3 Criar pedido com quantidade negativa (deve falhar)
+POST {{vendasUrl}}/api/pedidos
+Content-Type: application/json
+Authorization: Bearer {{tokenCliente}}
+
+{
+  "cliente": "Teste Erro",
+  "status": "Pendente",
+  "itens": [
+    {
+      "produtoId": 1,
+      "quantidade": -5
+    }
+  ]
+}
+
+### 5.4 Criar pedido com produto inexistente (deve falhar)
+POST {{vendasUrl}}/api/pedidos
+Content-Type: application/json
+Authorization: Bearer {{tokenCliente}}
+
+{
+  "cliente": "Teste Erro",
+  "status": "Pendente",
+  "itens": [
+    {
+      "produtoId": 9999,
+      "quantidade": 1
+    }
+  ]
+}
+
+###############################################
+### 6. FLUXO COMPLETO DE TESTE
+###############################################
+
+### PASSO 1: Login Admin
+# POST {{estoqueUrl}}/api/auth/login
+# Copie o token retornado
+
+### PASSO 2: Cadastrar produtos
+# POST {{estoqueUrl}}/api/produtos (usar token admin)
+
+### PASSO 3: Login Cliente
+# POST {{vendasUrl}}/api/auth/login
+# Copie o token retornado
+
+### PASSO 4: Ver produtos disponíveis
+# GET {{estoqueUrl}}/api/produtos (usar token cliente)
+
+### PASSO 5: Criar pedido
+# POST {{vendasUrl}}/api/pedidos (usar token cliente)
+
+### PASSO 6: Verificar se estoque foi reduzido
+# GET {{estoqueUrl}}/api/produtos (verificar quantidade)
+
+### PASSO 7: Ver pedidos criados
+# GET {{vendasUrl}}/api/pedidos

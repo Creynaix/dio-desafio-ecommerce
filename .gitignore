@@ -383,6 +383,9 @@ FodyWeavers.xsd
 web-bundles/
 .github/chatmodes/
 
+# Documentação
+DOCUMENTACAO.html
+
 # VS Code files for those working on multiple tools
 .vscode/*
 !.vscode/settings.json

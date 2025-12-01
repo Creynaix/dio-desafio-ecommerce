@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>Gestao de Estoque</title>
+<style>
+body{font-family:Arial;padding:20px;background:#f5f5f5}
+.container{max-width:800px;margin:0 auto;background:white;padding:30px;border-radius:8px}
+button{background:#007bff;color:white;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;margin:5px}
+button:hover{background:#0056b3}
+input{padding:8px;margin:5px;border:1px solid #ddd;border-radius:4px;width:200px}
+.card{background:#f9f9f9;padding:15px;margin:10px 0;border-radius:4px;border-left:4px solid #007bff}
+.token{background:#fff3cd;padding:10px;margin:10px 0;border-radius:4px;font-size:12px;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Gestao de Estoque</h1>
+<h2>Login</h2>
+<label>Usuario:</label><br>
+<input id="usuario" placeholder="Usuario">
+<br><label>Senha:</label><br>
+<input id="senha" type="password" placeholder="Senha">
+<br><button onclick="login()">Login</button>
+<button onclick="testeAdmin()" style="background:#28a745">Teste Admin</button>
+<button onclick="testeCliente()" style="background:#17a2b8">Teste Cliente</button>
+<div id="token" class="token" style="display:none"></div>
+<hr>
+<h2>Cadastrar Produto</h2>
+<label>Nome:</label><br>
+<input id="nome" placeholder="Nome" value="Pastel">
+<br><label>Descricao:</label><br>
+<input id="desc" placeholder="Descricao" value="Pastel de carne">
+<br><label>Preco:</label><br>
+<input id="preco" type="number" placeholder="Preco" value="5.50" step="0.01">
+<br><label>Quantidade:</label><br>
+<input id="qtd" type="number" placeholder="Quantidade" value="10">
+<br><button onclick="cadastrar()">Cadastrar</button>
+<div id="result"></div>
+<hr>
+<h2>Atualizar Produto</h2>
+<label>ID do Produto:</label><br>
+<input id="produtoId" type="number" placeholder="ID do Produto" readonly style="background:#f0f0f0">
+<br><label>Nome:</label><br>
+<input id="editNome" placeholder="Nome do Produto">
+<br><label>Descricao:</label><br>
+<input id="editDesc" placeholder="Descricao">
+<br><label>Preco:</label><br>
+<input id="editPreco" type="number" placeholder="Preco" step="0.01">
+<br><label>Quantidade em Estoque:</label><br>
+<input id="novaQtd" type="number" placeholder="Quantidade">
+<br><button onclick="atualizarProduto()" style="background:#ffc107; color:#000">💾 Salvar Alterações</button>
+<button onclick="limparFormulario()" style="background:#6c757d">🔄 Limpar</button>
+<div id="updateResult"></div>
+<hr>
+<h2>Produtos</h2>
+<button onclick="listar()">Atualizar Lista</button>
+<div id="produtos"></div>
+</div>
+<script>
+let t="";
+function testeAdmin(){
+document.getElementById("usuario").value="admin";
+document.getElementById("senha").value="admin123";
+login();
+}
+function testeCliente(){
+document.getElementById("usuario").value="cliente";
+document.getElementById("senha").value="cliente123";
+login();
+}
+async function login(){
+const usuario=document.getElementById("usuario").value;
+const senha=document.getElementById("senha").value;
+if(!usuario||!senha){alert("Preencha usuario e senha");return}
+try{
+const r=await fetch("http://localhost:5004/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({Username:usuario,Password:senha})});
+const d=await r.json();
+t=d.token||d.Token;
+document.getElementById("token").style.display="block";
+document.getElementById("token").innerText="Token: "+t;
+alert("Login OK");
+}catch(e){alert("Erro: "+e.message)}
+}
+async function cadastrar(){
+if(!t){alert("Faça login primeiro");return}
+try{
+const p={nome:document.getElementById("nome").value,descricao:document.getElementById("desc").value,preco:parseFloat(document.getElementById("preco").value),quantidade:parseInt(document.getElementById("qtd").value)};
+const r=await fetch("http://localhost:5004/api/gateway/estoque/api/produtos",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify(p)});
+if(r.ok){document.getElementById("result").innerHTML="<p style='color:green'>Produto cadastrado!</p>";listar()}
+else{const err=await r.text();document.getElementById("result").innerHTML="<p style='color:red'>"+err+"</p>"}
+}catch(e){document.getElementById("result").innerHTML="<p style='color:red'>"+e.message+"</p>"}
+}
+function limparFormulario(){
+document.getElementById("produtoId").value="";
+document.getElementById("editNome").value="";
+document.getElementById("editDesc").value="";
+document.getElementById("editPreco").value="";
+document.getElementById("novaQtd").value="";
+document.getElementById("updateResult").innerHTML="";
+}
+async function atualizarProduto(){
+if(!t){alert("Faça login primeiro");return}
+const produtoId=document.getElementById("produtoId").value;
+if(!produtoId){alert("Selecione um produto para editar");return}
+const dados={};
+const nome=document.getElementById("editNome").value;
+const desc=document.getElementById("editDesc").value;
+const preco=document.getElementById("editPreco").value;
+const qtd=document.getElementById("novaQtd").value;
+if(nome)dados.nome=nome;
+if(desc)dados.descricao=desc;
+if(preco)dados.preco=parseFloat(preco);
+if(qtd)dados.quantidade=parseInt(qtd);
+if(Object.keys(dados).length===0){alert("Preencha pelo menos um campo para atualizar");return}
+try{
+const r=await fetch(`http://localhost:5004/api/gateway/estoque/api/produtos/${produtoId}`,{method:"PUT",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify(dados)});
+if(r.ok){
+const contentType=r.headers.get("content-type");
+if(contentType&&contentType.includes("application/json")){
+const prod=await r.json();
+document.getElementById("updateResult").innerHTML=`<p style='color:green'>✅ Produto atualizado!<br><b>${prod.nome}</b><br>Preço: R$ ${prod.preco.toFixed(2)} | Estoque: ${prod.quantidade} un</p>`;
+}else{
+document.getElementById("updateResult").innerHTML=`<p style='color:green'>✅ Produto ${produtoId} atualizado com sucesso!</p>`;
+}
+limparFormulario();listar()
+}
+else if(r.status===403){document.getElementById("updateResult").innerHTML="<p style='color:red'>❌ Apenas Admin pode atualizar produtos</p>"}
+else if(r.status===404){document.getElementById("updateResult").innerHTML="<p style='color:red'>❌ Produto não encontrado</p>"}
+else{const err=await r.text();document.getElementById("updateResult").innerHTML="<p style='color:red'>❌ "+err+"</p>"}
+}catch(e){document.getElementById("updateResult").innerHTML="<p style='color:red'>❌ "+e.message+"</p>"}
+}
+async function listar(){
+if(!t){alert("Faça login primeiro");return}
+try{
+const r=await fetch("http://localhost:5004/api/gateway/estoque/api/produtos",{headers:{Authorization:"Bearer "+t}});
+const ps=await r.json();
+document.getElementById("produtos").innerHTML=ps.map(p=>`<div class="card"><b>${p.nome}</b> (ID: ${p.id})<br>${p.descricao}<br>Preço: R$ ${p.preco.toFixed(2)} | Estoque: ${p.quantidade} un<br><button onclick="document.getElementById('produtoId').value=${p.id};document.getElementById('editNome').value='${p.nome.replace(/'/g,"\\'")}';document.getElementById('editDesc').value='${p.descricao.replace(/'/g,"\\'")}';document.getElementById('editPreco').value=${p.preco};document.getElementById('novaQtd').value=${p.quantidade};document.getElementById('updateResult').innerHTML='';window.scrollTo(0,document.getElementById('produtoId').offsetTop-100)" style="background:#17a2b8;font-size:12px;padding:5px 10px">✏️ Editar</button></div>`).join("")||"<p>Nenhum produto</p>";
+}catch(e){document.getElementById("produtos").innerHTML="<p style='color:red'>"+e.message+"</p>"}
+}
+</script>
+</body>
+</html>

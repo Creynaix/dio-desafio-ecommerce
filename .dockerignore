@@ -1,0 +1,63 @@
+﻿# Ignorar arquivos desnecessários no build Docker
+
+# Binários e build artifacts
+**/bin/
+**/obj/
+**/out/
+
+# Visual Studio
+**/.vs/
+**/.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test results
+**/TestResults/
+**/*.trx
+
+# NuGet
+**/.nuget/
+**/packages/
+*.nupkg
+
+# Entity Framework
+**/Migrations/
+
+# Docker
+**/.dockerignore
+**/docker-compose*
+**/Dockerfile*
+
+# Git
+**/.git/
+**/.gitignore
+**/.gitattributes
+
+# Documentation
+**/*.md
+!**/README.md
+
+# IDE
+**/.idea/
+**/*.swp
+**/*.swo
+
+# OS
+**/Thumbs.db
+**/.DS_Store
+
+# Logs
+**/logs/
+**/*.log
+
+# Databases
+**/*.db
+**/*.sqlite
+**/*.mdf
+**/*.ldf
+
+# Node (se houver frontend)
+**/node_modules/
+**/npm-debug.log
