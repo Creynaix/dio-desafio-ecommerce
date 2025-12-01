@@ -64,10 +64,10 @@ Um sistema de e-commerce **production-ready** que demonstra:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      API GATEWAY (5004)                      │
-│        • Autenticação JWT Centralizada                       │
-│        • Roteamento Inteligente                              │
-│        • Policy-Based Authorization                          │
+│                      API GATEWAY (5004)                     │
+│        • Autenticação JWT Centralizada                      │
+│        • Roteamento Inteligente                             │
+│        • Policy-Based Authorization                         │
 └──────────────────┬──────────────────┬───────────────────────┘
                    │                  │
         ┌──────────┴────────┐  ┌─────┴──────────┐
@@ -77,12 +77,12 @@ Um sistema de e-commerce **production-ready** que demonstra:
         │    Consumer       │  │  • RabbitMQ    │
         │  • EstoqueDB      │  │    Producer    │
         └─────────┬─────────┘  │  • VendasDB    │
-                  │            └────────┬────────┘
+                  │            └────────┬───────┘
                   │                     │
               ┌───┴─────────────────────┴───┐
               │   RabbitMQ Message Broker   │
-              │      Queue: vendasQueue      │
-              └──────────────────────────────┘
+              │      Queue: vendasQueue     │
+              └─────────────────────────────┘
 
 ┌─────────────────┐  ┌──────────────────┐
 │  SQL Server     │  │   RabbitMQ       │
